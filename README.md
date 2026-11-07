@@ -1,6 +1,6 @@
 # Arduino Display Bridge
 
-A local MCP server that sends text to a 16×2 LCD connected to an ELEGOO UNO R3. The Mac communicates with the board over USB serial; no cloud services are used.
+A local MCP server that sends text and Snake game commands to a 16×2 LCD connected to an ELEGOO UNO R3. The Mac communicates with the board over USB serial; no cloud services are used.
 
 ## Hardware
 
@@ -16,12 +16,22 @@ A local MCP server that sends text to a 16×2 LCD connected to an ELEGOO UNO R3.
 | D7 | 2 |
 | RW | GND |
 
+### Joystick wiring
+
+| Joystick pin | ELEGOO UNO R3 pin |
+| --- | --- |
+| GND | GND |
+| +5V | 5V |
+| VRX | A0 |
+| VRY | A1 |
+| SW | Arduino digital pin 7 |
+
 ## Requirements
 
 - Python 3.11 or later
 - [`uv`](https://docs.astral.sh/uv/)
 - Arduino IDE and the `LiquidCrystal` library
-- An ELEGOO UNO R3 (or compatible board) and LCD
+- An ELEGOO UNO R3 (or compatible board), LCD, and optional joystick
 
 ## Setup
 
@@ -55,20 +65,31 @@ The device name may change after reconnecting the board. The server opens the se
 
 ### `write_display`
 
-Displays two lines on the LCD. Each input line is limited to 16 printable ASCII characters. Characters with an ASCII decomposition, such as accented Latin letters, are converted to their base letter. Unsupported characters and the protocol delimiter are replaced with spaces.
+Displays two lines on the LCD and stops an active Snake game. Each input line is limited to 16 printable ASCII characters. Characters with an ASCII decomposition, such as accented Latin letters, are converted to their base letter. Unsupported characters and the protocol delimiter are replaced with spaces.
 
 Parameters: `line1`, `line2`.
 
+### `start_snake`
+
+Starts a Snake game. Use the joystick to move and press `SW` to restart after game over.
+
+### `stop_snake`
+
+Stops Snake and returns the display to message mode.
+
 ## Serial protocol
 
-The server sends the newline-terminated ASCII command `T|line1|line2` over USB serial to display text. The firmware replies with `OK` when a command is handled and `ERR` when a command is invalid. The server treats any response other than `OK` as a command failure.
+The server sends newline-terminated ASCII commands over USB serial: `T|line1|line2` displays text, `G` starts Snake, and `S` stops it. The firmware replies with `OK` when a command is handled and `ERR` when a command is invalid. The server treats any response other than `OK` as a command failure.
+
+Snake uses all 32 LCD cells. Board edges and collisions end the game; the initial move interval is approximately 450 ms.
 
 ## Firmware layout
 
-The Arduino sketch files are in `firmware/ArduinoDisplayBridge/` and are compiled together by Arduino IDE:
+All Arduino sketch files are in `firmware/ArduinoDisplayBridge/` and are compiled together by Arduino IDE:
 
-- `ArduinoDisplayBridge.ino`: setup, main loop, and coordination between the display and serial protocol.
+- `ArduinoDisplayBridge.ino`: setup, main loop, and coordination between the game, display, and serial protocol.
+- `SnakeGame.h` and `SnakeGame.cpp`: Snake rules, joystick input, collisions, and score.
 - `DisplayUI.h` and `DisplayUI.cpp`: LCD wiring and rendering.
-- `SerialProtocol.h` and `SerialProtocol.cpp`: parsing of the `T` serial command.
+- `SerialProtocol.h` and `SerialProtocol.cpp`: parsing of the `T`, `G`, and `S` serial commands.
 
 After changing firmware, open the main `.ino` file in Arduino IDE, select **Verify** to compile, and **Upload** to install it. Keep the Serial Monitor closed while the MCP server is connected.

@@ -11,6 +11,8 @@ class DisplayUI {
   void begin();
   void showWelcome();
   void showText(const char *line1, const char *line2);
+  void drawGame(const uint8_t *snake, uint8_t length, uint8_t food);
+  void showGameOver(uint8_t score);
 
  private:
   LiquidCrystal lcd_;

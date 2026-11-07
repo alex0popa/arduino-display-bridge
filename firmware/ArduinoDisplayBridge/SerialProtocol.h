@@ -6,6 +6,8 @@
 enum class SerialCommandType : uint8_t {
   Invalid,
   Text,
+  StartGame,
+  StopGame,
 };
 
 struct SerialCommand {

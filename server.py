@@ -1,4 +1,4 @@
-"""Local MCP server for the UNO LCD."""
+"""Local MCP server for the UNO LCD and Snake game."""
 
 from __future__ import annotations
 
@@ -78,8 +78,20 @@ def _send_command(command: str) -> str:
 
 @server.tool()
 def write_display(line1: str, line2: str) -> str:
-    """Display two lines of text on the 16x2 LCD."""
+    """Display two lines of text on the 16x2 LCD, stopping an active Snake game."""
     return _send_command(f"T|{_lcd_text(line1)}|{_lcd_text(line2)}")
+
+
+@server.tool()
+def start_snake() -> str:
+    """Start Snake; use the joystick to move and press SW to restart after game over."""
+    return _send_command("G")
+
+
+@server.tool()
+def stop_snake() -> str:
+    """Stop Snake and return the display to message mode."""
+    return _send_command("S")
 
 
 if __name__ == "__main__":

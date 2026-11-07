@@ -33,6 +33,14 @@ bool SerialProtocol::readNext(Stream &stream, SerialCommand &command) {
 void SerialProtocol::parseMessage(SerialCommand &command) {
   command.line1[0] = '\0';
   command.line2[0] = '\0';
+  if (strcmp(message_, "G") == 0) {
+    command.type = SerialCommandType::StartGame;
+    return;
+  }
+  if (strcmp(message_, "S") == 0) {
+    command.type = SerialCommandType::StopGame;
+    return;
+  }
   if (message_[0] != 'T' || message_[1] != '|') {
     command.type = SerialCommandType::Invalid;
     return;
