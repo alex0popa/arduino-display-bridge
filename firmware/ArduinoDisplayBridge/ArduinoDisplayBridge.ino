@@ -59,6 +59,8 @@ void loop() {
   if (game.isRunning() && game.update(millis())) {
     if (game.isGameOver()) {
       display.showGameOver(game.score());
+    } else if (game.isWon()) {
+      display.showVictory();
     } else {
       drawCurrentGame();
     }

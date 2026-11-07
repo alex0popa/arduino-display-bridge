@@ -18,6 +18,7 @@ void SnakeGame::begin() {
 void SnakeGame::start(uint32_t now) {
   running_ = true;
   gameOver_ = false;
+  won_ = false;
   score_ = 0;
   length_ = 3;
   snake_[0] = 4;
@@ -32,6 +33,7 @@ void SnakeGame::start(uint32_t now) {
 void SnakeGame::stop() {
   running_ = false;
   gameOver_ = false;
+  won_ = false;
 }
 
 bool SnakeGame::buttonPressed() {
@@ -62,6 +64,10 @@ bool SnakeGame::isRunning() const {
 
 bool SnakeGame::isGameOver() const {
   return gameOver_;
+}
+
+bool SnakeGame::isWon() const {
+  return won_;
 }
 
 uint8_t SnakeGame::length() const {
@@ -178,7 +184,7 @@ bool SnakeGame::contains(uint8_t cell, uint8_t cellsToCheck) const {
 void SnakeGame::placeFood() {
   if (length_ >= kCellCount) {
     running_ = false;
-    gameOver_ = true;
+    won_ = true;
     return;
   }
 

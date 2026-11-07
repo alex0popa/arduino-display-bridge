@@ -71,7 +71,7 @@ Parameters: `line1`, `line2`.
 
 ### `start_snake`
 
-Starts a Snake game. Use the joystick to move and press `SW` to restart after game over.
+Starts a Snake game. Press the joystick's center button (`SW`) to start or restart after game over; use the joystick directions to move.
 
 ### `stop_snake`
 

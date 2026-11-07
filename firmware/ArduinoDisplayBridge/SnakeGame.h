@@ -13,6 +13,7 @@ class SnakeGame {
 
   bool isRunning() const;
   bool isGameOver() const;
+  bool isWon() const;
   uint8_t length() const;
   const uint8_t *body() const;
   uint8_t food() const;
@@ -36,6 +37,7 @@ class SnakeGame {
   uint32_t lastInputAt_ = 0;
   bool running_ = false;
   bool gameOver_ = false;
+  bool won_ = false;
   bool previousButtonState_ = HIGH;
 
   void readJoystick(uint32_t now);

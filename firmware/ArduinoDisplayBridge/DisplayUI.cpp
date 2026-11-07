@@ -42,3 +42,7 @@ void DisplayUI::showGameOver(uint8_t score) {
   lcd_.setCursor(0, 1);
   lcd_.print("Press SW to play");
 }
+
+void DisplayUI::showVictory() {
+  showText("YOU WIN!", "Board full");
+}
