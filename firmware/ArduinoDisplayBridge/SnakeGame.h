@@ -44,7 +44,7 @@ class SnakeGame {
 
   void readJoystick(uint32_t now);
   void advance();
-  bool contains(uint8_t cell, uint8_t cellsToCheck) const;
+  bool isOccupiedBySnake(uint8_t cell, uint8_t bodySegmentsToCheck) const;
   void placeFood();
 };
 

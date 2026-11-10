@@ -16,11 +16,13 @@ enum class SerialCommandType : uint8_t {
 };
 
 struct SerialCommand {
+  static const size_t kPanelRowWidth = 48;
+  static const size_t kLcdRowWidth = 16;
   SerialCommandType type;
   uint8_t row;
-  char panelRow[49];
-  char line1[17];
-  char line2[17];
+  char panelRow[kPanelRowWidth + 1];
+  char line1[kLcdRowWidth + 1];
+  char line2[kLcdRowWidth + 1];
 };
 
 class SerialProtocol {
@@ -28,7 +30,8 @@ class SerialProtocol {
   bool readNext(Stream &stream, SerialCommand &command);
 
  private:
-  static const size_t kMaxMessageLength = 52;
+  static const size_t kPanelRowHeaderLength = 4;
+  static const size_t kMaxMessageLength = kPanelRowHeaderLength + SerialCommand::kPanelRowWidth;
   char message_[kMaxMessageLength + 1];
   size_t messageLength_ = 0;
   bool discardingMessage_ = false;

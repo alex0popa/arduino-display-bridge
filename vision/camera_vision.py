@@ -48,7 +48,8 @@ def _get_snapshot(camera_url: str) -> bytes:
     with urlopen(request, timeout=10) as response:
         image_bytes = response.read()
 
-    if not image_bytes.startswith(JPEG_SIGNATURE):
+    has_jpeg_signature = image_bytes.startswith(JPEG_SIGNATURE)
+    if not has_jpeg_signature:
         raise ValueError(f"Camera endpoint did not return a JPEG image: {camera_url}")
     return image_bytes
 
@@ -75,11 +76,12 @@ def _analyze_snapshot(ollama_url: str, model: str, prompt: str, image_bytes: byt
     with urlopen(request, timeout=180) as response:
         result: Any = json.loads(response.read())
 
-    if (
-        not isinstance(result, dict)
-        or not isinstance(result.get("message"), dict)
-        or not isinstance(result["message"].get("content"), str)
-    ):
+    response_has_text_message = (
+        isinstance(result, dict)
+        and isinstance(result.get("message"), dict)
+        and isinstance(result["message"].get("content"), str)
+    )
+    if not response_has_text_message:
         raise ValueError("Ollama response did not contain a message string")
     return result["message"]["content"]
 
@@ -120,7 +122,8 @@ def main() -> None:
     ]
     if missing_settings:
         raise SystemExit(f"Set required configuration: {', '.join(missing_settings)}")
-    if not math.isfinite(args.interval) or args.interval <= 0:
+    interval_is_valid = math.isfinite(args.interval) and args.interval > 0
+    if not interval_is_valid:
         raise SystemExit("--interval must be a finite number greater than zero")
 
     print(f"Camera: {args.camera_url}")

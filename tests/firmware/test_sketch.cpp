@@ -5,7 +5,7 @@
 #define DISPLAY_UI_H
 #define SERIAL_PROTOCOL_H
 #define SNAKE_GAME_H
-#define PANEL_H
+#define VIRTUAL_TEXT_PANEL_H
 constexpr int A2 = 2;
 unsigned long millis() { return 0; }
 int analogRead(int) { return 0; }
@@ -15,10 +15,10 @@ enum class SerialCommandType { Invalid, Text, PanelBegin, PanelRow, PanelShow, S
 struct SerialCommand { SerialCommandType type; uint8_t row; char panelRow[49]; char line1[17]; char line2[17]; };
 struct DisplayUI { void begin() {} void drawGame(const uint8_t*, uint8_t, uint8_t) {} void showWelcome() {} void showText(const char*, const char*) {} void showGameOver(uint8_t) {} void showVictory() {} };
 struct SerialProtocol { bool readNext(SerialClass&, SerialCommand&) { return false; } };
-struct Panel {
+struct VirtualTextPanel {
  int resets=0, clears=0, writes=0;
  void clear() { ++clears; } void setRow(uint8_t, const char*) { ++writes; }
- void resetPosition() { ++resets; } bool update(unsigned long) { return false; }
+ void resetPosition() { ++resets; } bool update() { return false; }
  void copyVisibleRow(uint8_t, char *out) { out[0]='\0'; }
 };
 struct SnakeGame {

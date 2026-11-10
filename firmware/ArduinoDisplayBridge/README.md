@@ -41,7 +41,7 @@ Requirements: Arduino IDE and the `LiquidCrystal` library.
 - `ArduinoDisplayBridge.ino`: setup, main loop, and coordination between the game, display, and serial protocol.
 - `SnakeGame.h` and `SnakeGame.cpp`: Snake rules, joystick input, collisions, and score.
 - `DisplayUI.h` and `DisplayUI.cpp`: LCD wiring and rendering.
-- `Panel.h` and `Panel.cpp`: virtual 48×10 panel and joystick viewport navigation.
+- `VirtualTextPanel.h` and `VirtualTextPanel.cpp`: virtual 48×10 panel and joystick viewport navigation.
 - `SerialProtocol.h` and `SerialProtocol.cpp`: parsing of text, panel, and game commands.
 
 ## Serial protocol

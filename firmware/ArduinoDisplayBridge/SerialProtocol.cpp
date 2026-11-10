@@ -2,15 +2,58 @@
 
 #include <string.h>
 
-// Implements SerialProtocol: readNext frames newline-delimited input; parseMessage maps commands; copyRow safely copies LCD rows.
+// Implements SerialProtocol: matchesCommand and startsWithPrefix recognize protocol tokens;
+// isPanelRowMessage validates panel rows; readNext frames input; parseMessage maps commands;
+// copyRow safely copies LCD rows.
+
+namespace {
+constexpr char kPanelRowPrefix[] = "P|";
+constexpr char kTextPrefix[] = "T|";
+constexpr char kBeginPanelCommand[] = "B";
+constexpr char kShowPanelCommand[] = "F";
+constexpr char kStartGameCommand[] = "G";
+constexpr char kStopGameCommand[] = "S";
+constexpr char kFieldSeparator = '|';
+constexpr size_t kPanelRowNumberOffset = sizeof(kPanelRowPrefix) - 1;
+constexpr size_t kPanelRowSeparatorOffset = kPanelRowNumberOffset + 1;
+constexpr size_t kPanelRowTextOffset = kPanelRowSeparatorOffset + 1;
+
+bool matchesCommand(const char *message, const char *command) {
+  return strcmp(message, command) == 0;
+}
+
+bool startsWithPrefix(const char *message, const char *prefix) {
+  return strncmp(message, prefix, strlen(prefix)) == 0;
+}
+
+bool isPanelRowMessage(const char *message) {
+  if (!startsWithPrefix(message, kPanelRowPrefix)) {
+    return false;
+  }
+
+  const char rowNumber = message[kPanelRowNumberOffset];
+  const bool isValidRowNumber = rowNumber >= '0' && rowNumber <= '9';
+  if (!isValidRowNumber) {
+    return false;
+  }
+  if (message[kPanelRowSeparatorOffset] != kFieldSeparator) {
+    return false;
+  }
+
+  const char *rowText = message + kPanelRowTextOffset;
+  return strlen(rowText) <= SerialCommand::kPanelRowWidth;
+}
+}
 
 bool SerialProtocol::readNext(Stream &stream, SerialCommand &command) {
   while (stream.available() > 0) {
     const char incoming = static_cast<char>(stream.read());
-    if (incoming == '\r') {
+    const bool isCarriageReturn = incoming == '\r';
+    if (isCarriageReturn) {
       continue;
     }
-    if (incoming == '\n') {
+    const bool isMessageTerminator = incoming == '\n';
+    if (isMessageTerminator) {
       if (discardingMessage_) {
         command.type = SerialCommandType::Invalid;
       } else {
@@ -22,7 +65,8 @@ bool SerialProtocol::readNext(Stream &stream, SerialCommand &command) {
       return true;
     }
     if (!discardingMessage_) {
-      if (messageLength_ < kMaxMessageLength) {
+      const bool hasRoomForCharacter = messageLength_ < kMaxMessageLength;
+      if (hasRoomForCharacter) {
         message_[messageLength_++] = incoming;
       } else {
         discardingMessage_ = true;
@@ -35,38 +79,37 @@ bool SerialProtocol::readNext(Stream &stream, SerialCommand &command) {
 void SerialProtocol::parseMessage(SerialCommand &command) {
   command.line1[0] = '\0';
   command.line2[0] = '\0';
-  if (strcmp(message_, "B") == 0) {
+  if (matchesCommand(message_, kBeginPanelCommand)) {
     command.type = SerialCommandType::PanelBegin;
     return;
   }
-  if (strcmp(message_, "F") == 0) {
+  if (matchesCommand(message_, kShowPanelCommand)) {
     command.type = SerialCommandType::PanelShow;
     return;
   }
-  if (message_[0] == 'P' && message_[1] == '|' &&
-      message_[2] >= '0' && message_[2] <= '9' && message_[3] == '|' &&
-      strlen(message_ + 4) <= 48) {
-    command.row = message_[2] - '0';
-    strcpy(command.panelRow, message_ + 4);
+  if (isPanelRowMessage(message_)) {
+    command.row = message_[kPanelRowNumberOffset] - '0';
+    strcpy(command.panelRow, message_ + kPanelRowTextOffset);
     command.type = SerialCommandType::PanelRow;
     return;
   }
-  if (strcmp(message_, "G") == 0) {
+  if (matchesCommand(message_, kStartGameCommand)) {
     command.type = SerialCommandType::StartGame;
     return;
   }
-  if (strcmp(message_, "S") == 0) {
+  if (matchesCommand(message_, kStopGameCommand)) {
     command.type = SerialCommandType::StopGame;
     return;
   }
-  if (message_[0] != 'T' || message_[1] != '|') {
+  if (!startsWithPrefix(message_, kTextPrefix)) {
     command.type = SerialCommandType::Invalid;
     return;
   }
 
   const char *line1 = message_ + 2;
   const char *separator = strchr(line1, '|');
-  if (separator == nullptr) {
+  const bool hasLineSeparator = separator != nullptr;
+  if (!hasLineSeparator) {
     command.type = SerialCommandType::Invalid;
     return;
   }
@@ -76,8 +119,8 @@ void SerialProtocol::parseMessage(SerialCommand &command) {
 }
 
 void SerialProtocol::copyRow(char *destination, const char *source, size_t length) {
-  if (length > 16) {
-    length = 16;
+  if (length > SerialCommand::kLcdRowWidth) {
+    length = SerialCommand::kLcdRowWidth;
   }
   memcpy(destination, source, length);
   destination[length] = '\0';

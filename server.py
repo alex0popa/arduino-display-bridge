@@ -19,6 +19,8 @@ from serial.tools import list_ports
 
 BAUD_RATE = 115_200
 LCD_COLUMNS = 16
+PANEL_COLUMNS = 48
+PANEL_ROWS = 10
 _connection: serial.Serial | None = None
 _serial_lock = Lock()
 server = MCPServer("Arduino Display")
@@ -34,7 +36,8 @@ def _resolve_port() -> str:
         for port in list_ports.comports()
         if any(token in port.device.lower() for token in ("usbmodem", "usbserial", "wchusbserial"))
     ]
-    if len(candidates) != 1:
+    has_unique_candidate = len(candidates) == 1
+    if not has_unique_candidate:
         found = ", ".join(candidates) if candidates else "none"
         raise RuntimeError(
             f"Expected exactly one Arduino USB serial port; found: {found}. "
@@ -71,7 +74,8 @@ def _send_commands(commands: list[str]) -> str:
                 connection.write(f"{command}\n".encode("ascii"))
                 connection.flush()
                 response = connection.readline().decode("ascii", errors="replace").strip()
-                if response != "OK":
+                command_was_accepted = response == "OK"
+                if not command_was_accepted:
                     connection.close()
                     raise RuntimeError(
                         f"No valid confirmation from the UNO (response: {response or 'empty'}). "
@@ -100,10 +104,14 @@ def write_panel(rows: list[str]) -> str:
     Each group of 16 characters is a separate horizontal viewport. Spaces are
     significant, so pad content to align items in different columns.
     """
-    if len(rows) > 10 or any(len(row) > 48 or "\n" in row or "\r" in row for row in rows):
+    has_too_many_rows = len(rows) > PANEL_ROWS
+    has_invalid_row = not has_too_many_rows and any(
+        len(row) > PANEL_COLUMNS or "\n" in row or "\r" in row for row in rows
+    )
+    if has_too_many_rows or has_invalid_row:
         raise ValueError("Panel accepts up to 10 single-line rows of at most 48 characters each.")
     commands = ["B"]
-    commands.extend(f"P|{index}|{_lcd_text(row, 48)}" for index, row in enumerate(rows))
+    commands.extend(f"P|{index}|{_lcd_text(row, PANEL_COLUMNS)}" for index, row in enumerate(rows))
     commands.append("F")
     return _send_commands(commands)
 

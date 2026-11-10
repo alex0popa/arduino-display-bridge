@@ -1,7 +1,7 @@
 #include "SnakeGame.h"
 
 // Implements SnakeGame: lifecycle/state accessors, joystick sampling, timed movement, collision checks, and food placement.
-// Functions: begin/start/stop configure lifecycle; buttonPressed and readJoystick handle input; update/advance run gameplay; accessors expose state; contains and placeFood implement board logic.
+// Functions: begin/start/stop configure lifecycle; buttonPressed and readJoystick handle input; update/advance run gameplay; accessors expose state; isOccupiedBySnake and placeFood implement board logic.
 
 namespace {
 constexpr uint8_t kBoardWidth = 16;
@@ -12,6 +12,8 @@ constexpr uint16_t kMoveIntervalMs = 450;
 constexpr uint16_t kInputIntervalMs = 70;
 constexpr int kJoystickLowThreshold = 300;
 constexpr int kJoystickHighThreshold = 700;
+constexpr uint8_t kDirectionCount = 4;
+constexpr uint8_t kOppositeDirectionOffset = 2;
 }
 
 void SnakeGame::begin() {
@@ -52,7 +54,8 @@ bool SnakeGame::update(uint32_t now) {
   }
 
   readJoystick(now);
-  if (now - lastMoveAt_ < kMoveIntervalMs) {
+  const bool movementIsDue = now - lastMoveAt_ >= kMoveIntervalMs;
+  if (!movementIsDue) {
     return false;
   }
 
@@ -90,37 +93,48 @@ uint8_t SnakeGame::score() const {
 }
 
 void SnakeGame::readJoystick(uint32_t now) {
-  if (now - lastInputAt_ < kInputIntervalMs) {
+  const bool inputIsDue = now - lastInputAt_ >= kInputIntervalMs;
+  if (!inputIsDue) {
     return;
   }
   lastInputAt_ = now;
 
   const int x = analogRead(kJoystickXPin);
   const int y = analogRead(kJoystickYPin);
+  const bool moveLeft = x < kJoystickLowThreshold;
+  const bool moveRight = x > kJoystickHighThreshold;
+  const bool moveUp = y < kJoystickLowThreshold;
+  const bool moveDown = y > kJoystickHighThreshold;
   Direction requestedDirection = direction_;
-  if (x < kJoystickLowThreshold) {
+  if (moveLeft) {
     requestedDirection = Direction::Left;
-  } else if (x > kJoystickHighThreshold) {
+  } else if (moveRight) {
     requestedDirection = Direction::Right;
-  } else if (y < kJoystickLowThreshold) {
+  } else if (moveUp) {
     requestedDirection = Direction::Up;
-  } else if (y > kJoystickHighThreshold) {
+  } else if (moveDown) {
     requestedDirection = Direction::Down;
   }
 
   const uint8_t requested = static_cast<uint8_t>(requestedDirection);
   const uint8_t current = static_cast<uint8_t>(direction_);
-  if (requested != current && (requested + 2) % 4 != current) {
+  // Directions are ordered clockwise, so opposite directions are two steps apart.
+  const bool isOppositeDirection = (requested + kOppositeDirectionOffset) % kDirectionCount == current;
+  if (requested != current && !isOppositeDirection) {
     direction_ = requestedDirection;
   }
 }
 
 void SnakeGame::advance() {
   const uint8_t head = snake_[0];
+  const bool atTopEdge = head < kBoardWidth;
+  const bool atRightEdge = head % kBoardWidth == kBoardWidth - 1;
+  const bool atBottomEdge = head >= kCellCount - kBoardWidth;
+  const bool atLeftEdge = head % kBoardWidth == 0;
   uint8_t next = head;
   switch (direction_) {
     case Direction::Up:
-      if (head < kBoardWidth) {
+      if (atTopEdge) {
         running_ = false;
         gameOver_ = true;
         return;
@@ -128,7 +142,7 @@ void SnakeGame::advance() {
       next -= kBoardWidth;
       break;
     case Direction::Right:
-      if (head % kBoardWidth == kBoardWidth - 1) {
+      if (atRightEdge) {
         running_ = false;
         gameOver_ = true;
         return;
@@ -136,7 +150,7 @@ void SnakeGame::advance() {
       ++next;
       break;
     case Direction::Down:
-      if (head >= kCellCount - kBoardWidth) {
+      if (atBottomEdge) {
         running_ = false;
         gameOver_ = true;
         return;
@@ -144,7 +158,7 @@ void SnakeGame::advance() {
       next += kBoardWidth;
       break;
     case Direction::Left:
-      if (head % kBoardWidth == 0) {
+      if (atLeftEdge) {
         running_ = false;
         gameOver_ = true;
         return;
@@ -154,8 +168,9 @@ void SnakeGame::advance() {
   }
 
   const bool ateFood = next == food_;
-  const uint8_t cellsToCheck = ateFood ? length_ : length_ - 1;
-  if (contains(next, cellsToCheck)) {
+  // The tail vacates its cell unless the snake grows after eating.
+  const uint8_t bodySegmentsToCheck = ateFood ? length_ : length_ - 1;
+  if (isOccupiedBySnake(next, bodySegmentsToCheck)) {
     running_ = false;
     gameOver_ = true;
     return;
@@ -175,8 +190,8 @@ void SnakeGame::advance() {
   }
 }
 
-bool SnakeGame::contains(uint8_t cell, uint8_t cellsToCheck) const {
-  for (uint8_t i = 0; i < cellsToCheck; ++i) {
+bool SnakeGame::isOccupiedBySnake(uint8_t cell, uint8_t bodySegmentsToCheck) const {
+  for (uint8_t i = 0; i < bodySegmentsToCheck; ++i) {
     if (snake_[i] == cell) {
       return true;
     }
@@ -193,5 +208,5 @@ void SnakeGame::placeFood() {
 
   do {
     food_ = static_cast<uint8_t>(random(kCellCount));
-  } while (contains(food_, length_));
+  } while (isOccupiedBySnake(food_, length_));
 }

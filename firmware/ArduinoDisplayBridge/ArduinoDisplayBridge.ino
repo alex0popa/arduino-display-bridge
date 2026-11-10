@@ -1,14 +1,14 @@
 // Main sketch: initializes the LCD, panel, serial protocol, and Snake game, then dispatches commands and updates input.
 // Functions: drawPanel renders the viewport; drawCurrentGame renders game state; handleCommand dispatches parsed commands; readSerialCommands polls serial input; setup and loop are Arduino entry points.
 #include "DisplayUI.h"
-#include "Panel.h"
+#include "VirtualTextPanel.h"
 #include "SerialProtocol.h"
 #include "SnakeGame.h"
 
 DisplayUI display;
 SerialProtocol protocol;
 SnakeGame game;
-Panel panel;
+VirtualTextPanel panel;
 bool panelActive = false;
 
 void drawPanel() {
@@ -89,7 +89,7 @@ void loop() {
     drawCurrentGame();
   }
 
-  if (panelActive && panel.update(millis())) {
+  if (panelActive && panel.update()) {
     drawPanel();
   }
 

@@ -23,9 +23,9 @@ First implement a bounded panel and serial upload with existing simple text and 
 
 ## Edge Cases & Unspecified Behavior
 
-- Panel rows may be shorter than 48 characters or omitted: fill their remaining cells with spaces. Covered by `tests/firmware/test_panel.cpp`.
-- At vertical edges, movement stops. At horizontal edges wrapping changes the row by one only if a valid next window exists. Covered by `tests/firmware/test_panel.cpp`.
-- A new panel resets position to the top left. Covered by `tests/firmware/test_panel.cpp` and `tests/firmware/test_sketch.cpp`.
+- Panel rows may be shorter than 48 characters or omitted: fill their remaining cells with spaces. Covered by `tests/firmware/test_virtual_text_panel.cpp`.
+- At vertical edges, movement stops. At horizontal edges wrapping changes the row by one only if a valid next window exists. Covered by `tests/firmware/test_virtual_text_panel.cpp`.
+- A new panel resets position to the top left. Covered by `tests/firmware/test_virtual_text_panel.cpp` and `tests/firmware/test_sketch.cpp`.
 
 ## Decision Log
 
