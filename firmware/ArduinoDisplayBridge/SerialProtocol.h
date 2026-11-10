@@ -8,12 +8,17 @@
 enum class SerialCommandType : uint8_t {
   Invalid,
   Text,
+  PanelBegin,
+  PanelRow,
+  PanelShow,
   StartGame,
   StopGame,
 };
 
 struct SerialCommand {
   SerialCommandType type;
+  uint8_t row;
+  char panelRow[49];
   char line1[17];
   char line2[17];
 };
@@ -23,7 +28,7 @@ class SerialProtocol {
   bool readNext(Stream &stream, SerialCommand &command);
 
  private:
-  static const size_t kMaxMessageLength = 40;
+  static const size_t kMaxMessageLength = 52;
   char message_[kMaxMessageLength + 1];
   size_t messageLength_ = 0;
   bool discardingMessage_ = false;

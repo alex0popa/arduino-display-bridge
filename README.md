@@ -10,8 +10,8 @@ Owner: Project maintainers.
 
 | Module | Purpose | Documentation |
 | --- | --- | --- |
-| MCP server (`server.py`) | Exposes LCD and Snake controls over MCP and USB serial. | [MCP server README](docs/mcp-server/README.md) |
-| Arduino firmware (`firmware/ArduinoDisplayBridge/`) | Drives the 16×2 LCD and joystick-controlled Snake game. | [Firmware README](firmware/ArduinoDisplayBridge/README.md) |
+| MCP server (`server.py`) | Exposes LCD panel and Snake controls over MCP and USB serial. | [MCP server README](docs/mcp-server/README.md) |
+| Arduino firmware (`firmware/ArduinoDisplayBridge/`) | Drives the 16×2 LCD, navigable panel, and joystick-controlled Snake game. | [Firmware README](firmware/ArduinoDisplayBridge/README.md) |
 | Camera vision (`vision/`) | Samples the robot camera and asks a local Ollama vision model to describe each image. | [Vision README](vision/README.md) |
 
 ## Repository files
@@ -23,5 +23,7 @@ Owner: Project maintainers.
 | `pyproject.toml` | Python project metadata, runtime requirements, and tool configuration. |
 | `uv.lock` | Pins Python dependency versions; consult it when changing dependencies. |
 | `server.py` | MCP server entry point; see the [MCP server README](docs/mcp-server/README.md). |
+| `tests/` | Host-side firmware, server, and vision checks. |
+| `exec_plans/` | Living plans for substantial changes. |
 
 Python dependencies are managed with [`uv`](https://docs.astral.sh/uv/). Each module README contains its own setup and usage instructions.

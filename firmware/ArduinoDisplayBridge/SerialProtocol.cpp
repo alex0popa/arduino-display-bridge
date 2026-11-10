@@ -35,6 +35,22 @@ bool SerialProtocol::readNext(Stream &stream, SerialCommand &command) {
 void SerialProtocol::parseMessage(SerialCommand &command) {
   command.line1[0] = '\0';
   command.line2[0] = '\0';
+  if (strcmp(message_, "B") == 0) {
+    command.type = SerialCommandType::PanelBegin;
+    return;
+  }
+  if (strcmp(message_, "F") == 0) {
+    command.type = SerialCommandType::PanelShow;
+    return;
+  }
+  if (message_[0] == 'P' && message_[1] == '|' &&
+      message_[2] >= '0' && message_[2] <= '9' && message_[3] == '|' &&
+      strlen(message_ + 4) <= 48) {
+    command.row = message_[2] - '0';
+    strcpy(command.panelRow, message_ + 4);
+    command.type = SerialCommandType::PanelRow;
+    return;
+  }
   if (strcmp(message_, "G") == 0) {
     command.type = SerialCommandType::StartGame;
     return;

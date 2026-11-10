@@ -53,9 +53,15 @@ Displays two lines on the LCD and stops an active Snake game. Each line is limit
 
 Parameters: `line1`, `line2`.
 
+### `write_panel`
+
+Replaces the virtual panel with up to 10 rows, each at most 48 characters. Each group of 16 characters forms a column: pad with spaces to align content and diagrams. Missing cells are blank. The display starts at the upper left. Up and down move one row; left and right move one column, wrapping to the adjacent row at the sides when possible. Release the joystick to the center between moves. Starting Snake or displaying plain text exits panel mode. A failed transfer may leave a partially replaced panel; send the panel again.
+
+Parameter: `rows` (a list of single-line strings). Text is converted to printable ASCII like `write_display`.
+
 ### `start_snake`
 
-Starts Snake. Press the joystick's center button (`SW`) to start or restart after game over; use the joystick directions to move.
+Starts Snake. Press the joystick's center button (`SW`) to restart after game over or victory; use the joystick directions to move.
 
 ### `stop_snake`
 

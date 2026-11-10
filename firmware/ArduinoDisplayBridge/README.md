@@ -41,14 +41,20 @@ Requirements: Arduino IDE and the `LiquidCrystal` library.
 - `ArduinoDisplayBridge.ino`: setup, main loop, and coordination between the game, display, and serial protocol.
 - `SnakeGame.h` and `SnakeGame.cpp`: Snake rules, joystick input, collisions, and score.
 - `DisplayUI.h` and `DisplayUI.cpp`: LCD wiring and rendering.
-- `SerialProtocol.h` and `SerialProtocol.cpp`: parsing of the `T`, `G`, and `S` commands.
+- `Panel.h` and `Panel.cpp`: virtual 48×10 panel and joystick viewport navigation.
+- `SerialProtocol.h` and `SerialProtocol.cpp`: parsing of text, panel, and game commands.
 
 ## Serial protocol
 
 The UNO accepts newline-terminated ASCII commands over USB serial:
 
 - `T|line1|line2` displays text.
+- `B` clears the virtual panel for a new transfer.
+- `P|row|text` writes row `0`–`9` (up to 48 characters).
+- `F` shows the panel at its upper-left position.
 - `G` starts Snake.
 - `S` stops Snake.
+
+Panel navigation uses one joystick movement per release back to center. In text or panel mode the center button does not start Snake; after game over or victory it restarts the game.
 
 The firmware replies with `OK` when a command is handled and `ERR` when a command is invalid. Snake uses all 32 LCD cells; board edges and collisions end the game, and the initial move interval is approximately 450 ms.

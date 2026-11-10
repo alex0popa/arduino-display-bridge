@@ -2,8 +2,8 @@
 
 Contents:
 - `_resolve_port` and `_get_connection`: select and open the Arduino serial port.
-- `_lcd_text` and `_send_command`: normalize LCD text and send framed commands.
-- `write_display`, `start_snake`, and `stop_snake`: expose MCP tools.
+- `_lcd_text`, `_send_command`, and `_send_commands`: normalize text and send framed commands.
+- `write_display`, `write_panel`, `start_snake`, and `stop_snake`: expose MCP tools.
 """
 
 from __future__ import annotations
@@ -55,37 +55,57 @@ def _get_connection() -> serial.Serial:
     return _connection
 
 
-def _lcd_text(value: str) -> str:
+def _lcd_text(value: str, limit: int = LCD_COLUMNS) -> str:
     decomposed = unicodedata.normalize("NFKD", value)
     without_marks = "".join(char for char in decomposed if not unicodedata.combining(char))
     ascii_text = without_marks.encode("ascii", "replace").decode("ascii")
     printable = "".join(char if 32 <= ord(char) <= 126 and char != "|" else " " for char in ascii_text)
-    return printable[:LCD_COLUMNS]
+    return printable[:limit]
 
 
-def _send_command(command: str) -> str:
+def _send_commands(commands: list[str]) -> str:
     with _serial_lock:
         connection = _get_connection()
         try:
-            connection.write(f"{command}\n".encode("ascii"))
-            connection.flush()
-            response = connection.readline().decode("ascii", errors="replace").strip()
+            for command in commands:
+                connection.write(f"{command}\n".encode("ascii"))
+                connection.flush()
+                response = connection.readline().decode("ascii", errors="replace").strip()
+                if response != "OK":
+                    connection.close()
+                    raise RuntimeError(
+                        f"No valid confirmation from the UNO (response: {response or 'empty'}). "
+                        "Ensure the bridge firmware is uploaded and the Serial Monitor is closed."
+                    )
         except serial.SerialException:
             connection.close()
             raise
-
-        if response != "OK":
-            raise RuntimeError(
-                f"No valid confirmation from the UNO (response: {response or 'empty'}). "
-                "Ensure the bridge firmware is uploaded and the Serial Monitor is closed."
-            )
         return f"Command sent on port {connection.port}."
+
+
+def _send_command(command: str) -> str:
+    return _send_commands([command])
 
 
 @server.tool()
 def write_display(line1: str, line2: str) -> str:
     """Display two lines of text on the 16x2 LCD, stopping an active Snake game."""
     return _send_command(f"T|{_lcd_text(line1)}|{_lcd_text(line2)}")
+
+
+@server.tool()
+def write_panel(rows: list[str]) -> str:
+    """Show up to 10 rows of 48 characters in a joystick-navigable panel.
+
+    Each group of 16 characters is a separate horizontal viewport. Spaces are
+    significant, so pad content to align items in different columns.
+    """
+    if len(rows) > 10 or any(len(row) > 48 or "\n" in row or "\r" in row for row in rows):
+        raise ValueError("Panel accepts up to 10 single-line rows of at most 48 characters each.")
+    commands = ["B"]
+    commands.extend(f"P|{index}|{_lcd_text(row, 48)}" for index, row in enumerate(rows))
+    commands.append("F")
+    return _send_commands(commands)
 
 
 @server.tool()
