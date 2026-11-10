@@ -1,6 +1,8 @@
 #ifndef SERIAL_PROTOCOL_H
 #define SERIAL_PROTOCOL_H
 
+// SerialCommandType and SerialCommand define the parsed command contract; SerialProtocol buffers, parses, and bounds serial messages.
+
 #include <Arduino.h>
 
 enum class SerialCommandType : uint8_t {

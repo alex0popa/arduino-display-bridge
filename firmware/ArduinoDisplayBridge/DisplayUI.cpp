@@ -1,5 +1,7 @@
 #include "DisplayUI.h"
 
+// Implements DisplayUI: initializes the LCD and renders welcome/text, Snake board, game-over, and victory screens.
+
 namespace {
 constexpr uint8_t kLcdWidth = 16;
 constexpr uint8_t kLcdHeight = 2;

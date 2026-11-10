@@ -1,3 +1,5 @@
+// Main sketch: initializes the LCD, serial protocol, and Snake game, then dispatches commands and updates the game loop.
+// Functions: drawCurrentGame renders game state; handleCommand dispatches parsed commands; readSerialCommands polls serial input; setup and loop are Arduino entry points.
 #include "DisplayUI.h"
 #include "SerialProtocol.h"
 #include "SnakeGame.h"

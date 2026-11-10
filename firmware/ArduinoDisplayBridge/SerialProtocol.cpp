@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+// Implements SerialProtocol: readNext frames newline-delimited input; parseMessage maps commands; copyRow safely copies LCD rows.
+
 bool SerialProtocol::readNext(Stream &stream, SerialCommand &command) {
   while (stream.available() > 0) {
     const char incoming = static_cast<char>(stream.read());

@@ -1,6 +1,8 @@
 #ifndef SNAKE_GAME_H
 #define SNAKE_GAME_H
 
+// SnakeGame declares the gameplay API, state accessors, board representation, and private input/movement state.
+
 #include <Arduino.h>
 
 class SnakeGame {

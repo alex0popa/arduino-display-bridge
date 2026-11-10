@@ -1,5 +1,8 @@
 #include "SnakeGame.h"
 
+// Implements SnakeGame: lifecycle/state accessors, joystick sampling, timed movement, collision checks, and food placement.
+// Functions: begin/start/stop configure lifecycle; buttonPressed and readJoystick handle input; update/advance run gameplay; accessors expose state; contains and placeFood implement board logic.
+
 namespace {
 constexpr uint8_t kBoardWidth = 16;
 constexpr uint8_t kJoystickXPin = A0;

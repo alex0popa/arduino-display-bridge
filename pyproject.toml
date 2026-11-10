@@ -1,3 +1,5 @@
+# Python project name, supported runtime, and dependencies are declared in the [project] table below.
+
 [project]
 name = "arduino-display-bridge"
 version = "0.1.0"

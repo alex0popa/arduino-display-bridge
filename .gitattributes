@@ -1,3 +1,4 @@
+# Enforces LF line endings for text files, with explicit coverage for project source and metadata formats.
 * text=auto eol=lf
 *.ino text eol=lf
 *.h text eol=lf

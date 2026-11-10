@@ -1,4 +1,10 @@
-"""Local MCP server for the UNO LCD and Snake game."""
+"""Local MCP server for the UNO LCD and Snake game.
+
+Contents:
+- `_resolve_port` and `_get_connection`: select and open the Arduino serial port.
+- `_lcd_text` and `_send_command`: normalize LCD text and send framed commands.
+- `write_display`, `start_snake`, and `stop_snake`: expose MCP tools.
+"""
 
 from __future__ import annotations
 

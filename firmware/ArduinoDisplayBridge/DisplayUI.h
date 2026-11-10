@@ -1,6 +1,8 @@
 #ifndef DISPLAY_UI_H
 #define DISPLAY_UI_H
 
+// DisplayUI owns the LCD and exposes initialization plus text and Snake-game screen rendering.
+
 #include <Arduino.h>
 #include <LiquidCrystal.h>
 
