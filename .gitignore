@@ -1,3 +1,4 @@
+# Excludes local environments, caches, build artifacts, OS metadata, and the private vision/.env configuration.
 .venv/
 __pycache__/
 *.py[cod]
@@ -7,5 +8,6 @@ __pycache__/
 .mypy_cache/
 .coverage
 htmlcov/
+vision/.env
 build/
 dist/
